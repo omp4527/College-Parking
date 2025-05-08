@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>College Parking Finder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+    }
+    header, footer {
+      background-color: #004080;
+      color: white;
+      padding: 1em;
+      text-align: center;
+    }
+    nav {
+      background-color: #ddd;
+      padding: 0.5em;
+      text-align: center;
+    }
+    nav a {
+      margin: 0 1em;
+      text-decoration: none;
+      color: #004080;
+      font-weight: bold;
+    }
+    .search-bar {
+      text-align: center;
+      margin: 1em;
+    }
+    .search-bar input {
+      padding: 0.5em;
+      width: 80%;
+      max-width: 400px;
+    }
+    .lot {
+      background: white;
+      margin: 1em auto;
+      padding: 1em;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .status {
+      font-weight: bold;
+    }
+    .available { color: green; }
+    .full { color: red; }
+    .almost-full { color: orange; }
+    button {
+      display: block;
+      margin: 2em auto;
+      padding: 0.75em 1.5em;
+      background-color: #004080;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #003366;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>College Parking Finder</h1>
+  </header>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="parking-map.html">Parking Map</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+
+  <div class="lot">
+    <h2>Welcome to the Smart College Parking System</h2>
+    <p>Find available parking spots in real-time and save time every day.</p>
+    <p>Our goal is to reduce the hassle of finding a parking space for students and staff.</p>
+  </div> 
+
+  <div class="search-bar">
+    <input type="text" placeholder="Search by Building or Lot Name...">
+  </div>
+
+  <div class="lot">
+    <h2>🅿️ Parking Lot A</h2>
+    <p class="status available">✅ 12 Spots Available</p>
+    <p>📍 Near Science Dept</p>
+  </div>
+
+  <div class="lot">
+    <h2>🅿️ Parking Lot B</h2>
+    <p class="status full">❌ Full</p>
+    <p>📍 Near Admin Building</p>
+  </div>
+
+  <div class="lot">
+    <h2>🅿️ Parking Lot C</h2>
+    <p class="status almost-full">⚠️ Almost Full (3 Spots)</p>
+    <p>📍 Near Library</p>
+  </div>
+
+  <button>🔄 Refresh Availability</button>
+
+  <footer>
+    <p>&copy; 2025 MIT Academy Of Engineering | Terms | Help</p>
+  </footer>
+</body>
+</html>
