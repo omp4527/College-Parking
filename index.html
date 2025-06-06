@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>College Parking Finder</title>
+  <style>
+    /* (same styles as before, no change) */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header, footer {
+      background-color: #004080;
+      color: white;
+      padding: 1em;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    nav {
+      background-color: #ddd;
+      padding: 0.5em;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    nav a {
+      margin: 0 1em;
+      text-decoration: none;
+      color: #004080;
+      font-weight: bold;
+    }
+    nav a.active {
+      text-decoration: underline;
+    }
+    .hero {
+      background-color: white;
+      margin: 2em auto;
+      max-width: 800px;
+      padding: 2em;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .hero h2 {
+      color: #004080;
+    }
+    .button {
+      background-color: #004080;
+      color: white;
+      padding: 0.75em 1.5em;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 1em;
+    }
+    .button:hover {
+      background-color: #003366;
+    }
+    .search-bar {
+      text-align: center;
+      margin: 1em;
+      display: flex;
+      justify-content: center;
+      gap: 1em;
+      flex-wrap: wrap;
+    }
+    .search-bar input, .search-bar select {
+      padding: 0.5em;
+      width: 250px;
+      max-width: 90vw;
+      font-size: 1em;
+    }
+    .lot {
+      background: white;
+      margin: 1em auto;
+      padding: 1em;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    .lot input[type="number"] {
+      width: 60px;
+      font-size: 1em;
+      margin-left: 0.5em;
+    }
+    .status {
+      font-weight: bold;
+    }
+    .available { color: green; }
+    .full { color: red; }
+    .almost-full { color: orange; }
+    .notification {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #004080;
+      color: white;
+      padding: 1em;
+      border-radius: 5px;
+      z-index: 999;
+    }
+    .capacity-bar {
+      height: 10px;
+      background: #eee;
+      border-radius: 5px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    .capacity-fill {
+      height: 10px;
+      border-radius: 5px;
+      transition: width 0.5s;
+    }
+    #logout-btn, #toggle-admin-btn {
+      background-color: #004080;
+      color: white;
+      padding: 0.5em 1em;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 1em 0.5em;
+    }
+    #logout-btn:hover, #toggle-admin-btn:hover {
+      background-color: #003366;
+    }
+    #buttons-container {
+      text-align: center;
+      margin: 1em 0;
+      flex-shrink: 0;
+    }
+    main {
+      flex-grow: 1;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>MITAOE College Parking Finder</h1>
+</header>
+
+<nav>
+  <a href="index.html" class="active">Home</a>
+  <a href="parking-map.html">Parking Map</a>
+  <a href="about.html">About</a>
+  <a href="contact.html">Contact</a>
+</nav>
+
+<main>
+  <div class="hero">
+    <h2>Welcome to the Smart College Parking System</h2>
+    <p>Save time by finding free parking spots instantly around the campus.</p>
+    <a href="#lots" class="button">View Parking Availability</a>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Search by lot name, location, or type..." />
+    <select id="search-status-select" title="Filter by availability status">
+      <option value="">All Statuses</option>
+      <option value="available">Available</option>
+      <option value="full">Full</option>
+      <option value="almost full">Almost Full</option>
+    </select>
+  </div>
+
+  <p style="text-align:center; font-style: italic;" id="last-updated"></p>
+
+  <div id="lots">
+    <div id="parking-lots-container"></div>
+  </div>
+</main>
+
+<div id="buttons-container">
+  <button id="logout-btn">Logout</button>
+  <button id="toggle-admin-btn">🔐 Enable Admin Mode</button>
+</div>
+
+<footer>
+  <p>© 2025 MITAOE College Parking Finder</p>
+</footer>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDGk-P9HE1LxvFdujmXY9wZrNw4GyVKpfw",
+    authDomain: "college-parking-finder.firebaseapp.com",
+    projectId: "college-parking-finder",
+    storageBucket: "college-parking-finder.firebasestorage.app",
+    messagingSenderId: "581409635043",
+    appId: "1:581409635043:web:07085a122427b8beade3d6",
+    measurementId: "G-TNE1Q1MB2Q"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const logoutBtn = document.getElementById('logout-btn');
+  const toggleAdminBtn = document.getElementById('toggle-admin-btn');
+  const parkingLotsContainer = document.getElementById('parking-lots-container');
+  const searchInput = document.getElementById('search-input');
+  const searchStatusSelect = document.getElementById('search-status-select');
+  const notification = document.getElementById('notification');
+
+  const ADMIN_PASSWORD = "admin123";
+
+  let adminMode = false;
+
+  const parkingLots = [
+    { name: "🅿️Lot A", location: "Main Gate", capacity: 100, available: 25, type: "General", hours: "8AM - 10PM" },
+    { name: "🅿️Lot B", location: "Admin Block", capacity: 50, available: 0, type: "Faculty", hours: "24/7" },
+    { name: "🅿️Lot C", location: "Library", capacity: 75, available: 60, type: "Student", hours: "7AM - 9PM" },
+    { name: "🅿️Lot D", location: "Canteen", capacity: 40, available: 5, type: "Visitor", hours: "8AM - 8PM" }
+  ];
+
+  function showNotification(msg, bgColor = '#004080') {
+    notification.textContent = msg;
+    notification.style.backgroundColor = bgColor;
+    notification.style.display = 'block';
+    setTimeout(() => notification.style.display = 'none', 3000);
+  }
+
+  function renderLots(filterText = '', statusFilter = '') {
+    parkingLotsContainer.innerHTML = '';
+
+    const filteredLots = parkingLots.filter(lot => {
+      const matchesText = lot.name.toLowerCase().includes(filterText.toLowerCase()) ||
+                          lot.location.toLowerCase().includes(filterText.toLowerCase()) ||
+                          lot.type.toLowerCase().includes(filterText.toLowerCase());
+
+      let statusText = 'available';
+      const capacityUsedPercent = ((lot.capacity - lot.available) / lot.capacity) * 100;
+      if (lot.available === 0) statusText = 'full';
+      else if (capacityUsedPercent > 75) statusText = 'almost full';
+
+      const matchesStatus = statusFilter === '' || statusText === statusFilter.toLowerCase();
+
+      return matchesText && matchesStatus;
+    });
+
+    if (filteredLots.length === 0) {
+      parkingLotsContainer.innerHTML = '<p>No matching parking lots found.</p>';
+      return;
+    }
+
+    filteredLots.forEach(lot => {
+      const capacityUsedPercent = ((lot.capacity - lot.available) / lot.capacity) * 100;
+      let statusClass = 'available';
+      let statusText = 'Available';
+
+      if (lot.available === 0) {
+        statusClass = 'full';
+        statusText = 'Full';
+      } else if (capacityUsedPercent > 75) {
+        statusClass = 'almost-full';
+        statusText = 'Almost Full';
+      }
+
+      const lotDiv = document.createElement('div');
+      lotDiv.className = 'lot';
+
+      if (adminMode) {
+        lotDiv.innerHTML = `
+          <h3>${lot.name}</h3>
+          <p><strong>Location:</strong> ${lot.location}</p>
+          <p><strong>Type:</strong> ${lot.type}</p>
+          <p class="status ${statusClass}"><strong>Status:</strong> ${statusText} (${lot.available}/${lot.capacity} spots available)</p>
+          <label>
+            Update Available Spots: 
+            <input type="number" min="0" max="${lot.capacity}" value="${lot.available}" data-lot-name="${lot.name}" />
+          </label>
+          <div class="capacity-bar">
+            <div class="capacity-fill" style="width:${(lot.available / lot.capacity) * 100}%; background-color:${statusClass === 'full' ? 'red' : statusClass === 'almost-full' ? 'orange' : 'green'}"></div>
+          </div>
+        `;
+      } else {
+        lotDiv.innerHTML = `
+          <h3>${lot.name}</h3>
+          <p><strong>📍Location:</strong> ${lot.location}</p>
+          <p><strong>👤Type:</strong> ${lot.type}</p>
+          <p>🕒 ${lot.hours}</p>
+          <p class="status ${statusClass}"><strong>💺Status:</strong> ${statusText} (${lot.available}/${lot.capacity} spots available)</p>
+          <div class="capacity-bar">
+            <div class="capacity-fill" style="width:${(lot.available / lot.capacity) * 100}%; background-color:${statusClass === 'full' ? 'red' : statusClass === 'almost-full' ? 'orange' : 'green'}"></div>
+          </div>
+        `;
+      }
+
+      parkingLotsContainer.appendChild(lotDiv);
+    });
+
+    if (adminMode) {
+      parkingLotsContainer.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('change', e => {
+          const lotName = e.target.getAttribute('data-lot-name');
+          const newAvailable = parseInt(e.target.value);
+          if (isNaN(newAvailable) || newAvailable < 0) {
+            alert("Please enter a valid non-negative number.");
+            e.target.value = parkingLots.find(l => l.name === lotName).available;
+            return;
+          }
+          const lot = parkingLots.find(l => l.name === lotName);
+          if (newAvailable > lot.capacity) {
+            alert(`Available spots cannot exceed capacity (${lot.capacity}).`);
+            e.target.value = lot.available;
+            return;
+          }
+          lot.available = newAvailable;
+          showNotification(`Updated ${lotName} availability to ${newAvailable} spots.`, '#007700');
+          renderLots(searchInput.value, searchStatusSelect.value);
+        });
+      });
+    }
+  }
+
+  function updateLastUpdated() {
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    
+    const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+    document.getElementById('last-updated').textContent = `Last updated: ${formattedDate}`;
+  }
+
+  toggleAdminBtn.addEventListener('click', () => {
+    if (!adminMode) {
+      const password = prompt("Enter admin password to enable editing:");
+      if (password === ADMIN_PASSWORD) {
+        adminMode = true;
+        toggleAdminBtn.textContent = "🔓 Disable Admin Mode";
+        showNotification("Admin mode enabled", "#004080");
+        renderLots(searchInput.value, searchStatusSelect.value);
+      } else {
+        alert("Incorrect password.");
+      }
+    } else {
+      adminMode = false;
+      toggleAdminBtn.textContent = "🔐 Enable Admin Mode";
+      showNotification("Admin mode disabled", "#444");
+      renderLots(searchInput.value, searchStatusSelect.value);
+    }
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    signOut(auth).then(() => {
+      window.location.href = "login.html";
+    }).catch(error => {
+      alert("Logout failed: " + error.message);
+    });
+  });
+
+  searchInput.addEventListener('input', () => {
+    renderLots(searchInput.value, searchStatusSelect.value);
+  });
+
+  searchStatusSelect.addEventListener('change', () => {
+    renderLots(searchInput.value, searchStatusSelect.value);
+  });
+
+  onAuthStateChanged(auth, user => {
+    if (!user) {
+      window.location.href = "login.html";
+    } else {
+      renderLots();
+      updateLastUpdated();
+      setInterval(updateLastUpdated, 60000);
+    }
+  });
+</script>
+
+<div class="notification" id="notification"></div>
+
+</body>
+</html>

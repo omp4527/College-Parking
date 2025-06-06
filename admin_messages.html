@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Messages - College Parking Finder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2em;
+      background: #f0f0f0;
+    }
+    h1 {
+      text-align: center;
+      color: #004080;
+    }
+    .message-list {
+      max-width: 800px;
+      margin: 2em auto;
+      background: white;
+      border-radius: 8px;
+      padding: 1em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .message {
+      border-bottom: 1px solid #ccc;
+      padding: 1em 0;
+    }
+    .message:last-child {
+      border-bottom: none;
+    }
+    .label {
+      font-weight: bold;
+      color: #004080;
+    }
+  </style>
+</head>
+<body>
+  <h1>Submitted Messages</h1>
+  <div class="message-list" id="messageList">
+    <p>Loading messages...</p>
+  </div>
+
+  <!-- Firebase SDK and Firestore -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const messageList = document.getElementById("messageList");
+    const messagesRef = collection(db, "messages");
+
+    async function fetchMessages() {
+      const snapshot = await getDocs(messagesRef);
+      messageList.innerHTML = ""; // Clear the loading text
+
+      if (snapshot.empty) {
+        messageList.innerHTML = "<p>No messages found.</p>";
+        return;
+      }
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const messageItem = document.createElement("div");
+        messageItem.classList.add("message");
+        messageItem.innerHTML = `
+          <p><span class="label">Name:</span> ${data.name}</p>
+          <p><span class="label">Email:</span> ${data.email}</p>
+          <p><span class="label">Message:</span> ${data.message}</p>
+          <p><span class="label">Timestamp:</span> ${data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : "N/A"}</p>
+        `;
+        messageList.appendChild(messageItem);
+      });
+    }
+
+    fetchMessages();
+  </script>
+</body>
+</html>
